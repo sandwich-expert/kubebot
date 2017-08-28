@@ -8,7 +8,9 @@ WORKDIR /go/src/app
 
 ADD . /go/src/app/
 
-RUN go-wrapper download
-RUN go-wrapper install
+RUN set -x && \
+    go get github.com/go-chat-bot/bot && \
+    go get github.com/nlopes/slack
+RUN go build -o app *.go
 
 CMD ["app"]
