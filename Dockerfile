@@ -13,4 +13,4 @@ RUN set -x && \
     go get github.com/go-chat-bot/bot
 RUN go build -o app *.go
 
-CMD ["app"]
+CMD ["/go/src/app/app"]
