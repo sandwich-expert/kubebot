@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Push a locally buil docker image to the remote registry, e.g. Docker Hub
+# Including the abbreviated git commit id as the tag, like the build script. 
+#
+# Generally only Jenkins should push images to the registry. 
+
+# Location - root of project
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR/../
+
+source ./build/settings-env
+
+echo "[INFO] Pushing image $IMAGE_NAME"
+docker push $IMAGE_NAME

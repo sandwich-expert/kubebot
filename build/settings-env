@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Settings
+REPOSITORY=thelastpickle/kubebot
+TAG=`git log -n 1 --pretty=format:"%h"`
+IMAGE_NAME=$REPOSITORY:$TAG
