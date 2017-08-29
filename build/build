@@ -6,10 +6,6 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/../
 
-# Clean and make the git.properties to include in the image
-rm ./git.properties
-./make-git-properties.sh
-
 source ./build/settings-env
 
 # Cleanup 
