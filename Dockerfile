@@ -6,11 +6,12 @@ RUN wget http://storage.googleapis.com/kubernetes-release/release/v1.7.3/bin/lin
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
 
-ADD . /go/src/app/
-
 RUN set -x && \
     go get github.com/nlopes/slack && \
     go get github.com/go-chat-bot/bot
+
+ADD . /go/src/app/
+
 RUN go build -o app *.go
 
 CMD ["/go/src/app/app"]
