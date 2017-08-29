@@ -17,7 +17,7 @@ type Kubebot struct {
 
 const (
 	forbiddenUserMessage     string = "%s - ⚠ kubectl forbidden for user @%s\n"
-	forbiddenChannelMessage  string = "%s - ⚠ Channel %s forbidden for user @%s\n"
+	forbiddenChannelMessage  string = "%s - ⚠ Channel %s forbidden (%s) for user @%s\n"
 	forbiddenCommandMessage  string = "%s - ⚠ Command %s forbidden for user @%s\n"
 	forbiddenFlagMessage     string = "%s - ⚠ Flag(s) %s forbidden for user @%s\n"
 	forbiddenUserResponse    string = "Sorry @%s, but you don't have permission to run this command :confused:"
@@ -143,7 +143,7 @@ func kubectl(command *bot.Cmd) (msg string, err error) {
 	}
 
 	if !kb.channels[command.Channel] {
-		fmt.Printf(forbiddenChannelMessage, time, command.Channel, nickname)
+		fmt.Printf(forbiddenChannelMessage, time, command.Channel, kb.channels, nickname)
 		return fmt.Sprintf(forbiddenChannelResponse, nickname), nil
 	}
 
