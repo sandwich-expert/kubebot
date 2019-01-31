@@ -1,14 +1,7 @@
-FROM golang:1.8.3
+# upstream go project changed and build no longer works, as workaround, pulling previous image that already include dependencies
+FROM thelastpickle/kubebot:0bd34d7
 
-RUN wget http://storage.googleapis.com/kubernetes-release/release/v1.7.3/bin/linux/amd64/kubectl -O /usr/bin/kubectl && \
-    chmod +x /usr/bin/kubectl
-
-RUN mkdir -p /go/src/app
-WORKDIR /go/src/app
-
-RUN set -x && \
-    go get github.com/nlopes/slack && \
-    go get github.com/go-chat-bot/bot
+RUN rm -rf /go/src/app/
 
 ADD . /go/src/app/
 
