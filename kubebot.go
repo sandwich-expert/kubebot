@@ -16,11 +16,7 @@ type Kubebot struct {
 }
 
 const (
-	forbiddenUserMessage     string = "%s - ⚠ kubectl forbidden for user @%s\n"
 	forbiddenChannelMessage  string = "%s - ⚠ Channel %s forbidden (%s) for user @%s\n"
-	forbiddenCommandMessage  string = "%s - ⚠ Command %s forbidden for user @%s\n"
-	forbiddenFlagMessage     string = "%s - ⚠ Flag(s) %s forbidden for user @%s\n"
-	forbiddenUserResponse    string = "Sorry @%s, but you don't have permission to run this command :confused:"
 	forbiddenChannelResponse string = "Sorry @%s, but I'm not allowed to run this command here :zipper_mouth_face:"
 	forbiddenCommandResponse string = "Sorry @%s, but I cannot run this command."
 	forbiddenFlagResponse    string = "Sorry @%s, but I'm not allowed to run one of your flags."
@@ -137,24 +133,9 @@ func kubectl(command *bot.Cmd) (msg string, err error) {
 	time := t.Format(time.RFC3339)
 	nickname := command.User.Nick
 
-	if !kb.admins[nickname] {
-		fmt.Printf(forbiddenUserMessage, time, nickname)
-		return fmt.Sprintf(forbiddenUserResponse, nickname), nil
-	}
-
 	if !kb.channels[command.Channel] {
 		fmt.Printf(forbiddenChannelMessage, time, command.Channel, kb.channels, nickname)
 		return fmt.Sprintf(forbiddenChannelResponse, nickname), nil
-	}
-
-	if len(command.Args) > 0 && !kb.commands[command.Args[0]] {
-		fmt.Printf(forbiddenCommandMessage, time, command.Args, nickname)
-		return fmt.Sprintf(forbiddenCommandResponse, nickname), nil
-	}
-
-	if err := validateFlags(command.Args...); err != nil {
-		fmt.Printf(forbiddenFlagMessage, time, command.Args, nickname)
-		return fmt.Sprintf(forbiddenFlagResponse, nickname), nil
 	}
 
 	output := execute("kubectl", command.Args...)
