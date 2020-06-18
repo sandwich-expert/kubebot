@@ -5,7 +5,6 @@ def err = null
 try {
     node{
       stage 'Build and Test'
-      //slackSend channel: '#tlp-sandwich-jenkins', color: 'good', message: "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} - ${env.BUILD_URL}"
       env.PATH = "${tool 'maven-3.3.9'}/bin:${env.PATH}"
       checkout scm
 
@@ -22,7 +21,6 @@ try {
       currentBuild.result = "SUCCESS"
 
       cleanupDockerImages()
-      slackSend channel: '#tlp-sandwich-jenkins', color: 'good', message: ":smile: Build successful - ${env.JOB_NAME} ${env.BUILD_NUMBER} - ${env.BUILD_URL}"
     }
 } catch (caughtError) {
     err = caughtError
@@ -33,9 +31,8 @@ try {
         // currentBuild.result must be non-null for this step to work.
         if ("${env.JOB_NAME}".contains("master") || "${env.JOB_NAME}".contains("develop"))
         {
-          slackSend channel: '#tlp-sandwich', color: 'bad', message: ":cry: Build failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} - ${env.BUILD_URL}"
+          slackSend channel: '#vector', color: 'bad', message: ":cry: Build failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} - ${env.BUILD_URL}"
         }
-        slackSend channel: '#tlp-sandwich-jenkins', color: 'bad', message: ":cry: Build failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} - ${env.BUILD_URL}"
     }
 
     /* Must re-throw exception to propagate error */
