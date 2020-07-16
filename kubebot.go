@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -140,7 +141,7 @@ func kubectl(command *bot.Cmd) (msg string, err error) {
 	nickname := command.User.Nick
 
 	if !kb.channels[command.Channel] {
-		fmt.Printf(forbiddenChannelMessage, time, command.Channel, kb.channels, nickname)
+		fmt.Fprintf(os.Stderr, forbiddenChannelMessage, time, command.Channel, kb.channels, nickname)
 		return fmt.Sprintf(forbiddenChannelResponse, nickname), nil
 	}
 
@@ -153,7 +154,7 @@ func kubectl(command *bot.Cmd) (msg string, err error) {
 
 	fixedArgsSlice := strings.Split(fixedArgs, " ")
 
-	fmt.Printf("Running kubectl command for %s: kubectl %+v", nickname, fixedArgsSlice)
+	fmt.Fprintf(os.Stderr, "Running kubectl command for %s: kubectl %+v\n", nickname, fixedArgs)
 
 	output := execute("kubectl", fixedArgsSlice...)
 	return fmt.Sprintf(okResponse, nickname, output), nil
