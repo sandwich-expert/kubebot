@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 
-# Settings
-REPOSITORY=thelastpickle/kubebot
-TAG=`git log -n 1 --pretty=format:"%h"`
-IMAGE_NAME=$REPOSITORY:$TAG
+# Settings (allow override via DOCKER_REGISTRY/DOCKER_REPOSITORY envvars)
+DOCKER_REGISTRY=${DOCKER_REGISTRY:=748770834050.dkr.ecr.ap-southeast-2.amazonaws.com} # use 'docker.io' for Docker Hub
+DOCKER_REPOSITORY=${DOCKER_REPOSITORY:=thelastpickle/kubebot}
+
+# only replace DOCKER_TAG if not set as env variable
+if [ -z "$DOCKER_TAG" ]; then
+    # Jenkins injects BUILD_NUMBER so, we will append branch on local builds
+    if [ -n "$BUILD_NUMBER" ]; then
+        DOCKER_TAG="$(git log -n 1 --pretty=format:"%h")"
+        DOCKER_TAG=${DOCKER_TAG:0:7}
+    else
+        DOCKER_TAG="${USER}-SNAPSHOT"
+    fi
+fi
+
+IMAGE_NAME=${DOCKER_REGISTRY}/${DOCKER_REPOSITORY}:${DOCKER_TAG}

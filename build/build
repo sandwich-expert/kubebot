@@ -1,54 +1,28 @@
 #!/usr/bin/env bash
-# Locally build the Docker image, using the abreviated git commit as the tag
+# Locally build the Docker image, using the abbreviated git commit as the tag
 # To be run locally during dev and by Jenkins
 
 set -e
 
-# poor man stack trace
-err_report() {
-    echo "Error on line $0 $1"
-}
-trap 'err_report $LINENO' ERR
-
-[[ ( "$DEBUG" == 'true' ) ]] && set -x
-
 # Location - root of project
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source ${DIR}/settings-env
+
 cd $DIR/../
 
-source ./build/settings-env
-
-# Jenkins injects BUILD_NUMBER so, we will only remove existing builds when BUILD_NUMBER is present
-if [[ $BUILD_NUMBER ]]; then
-    # Cleanup
-    # Remove any existing builds for this image to save space
-    # Use force because they can always be downloaded / built again
-    # This does not appear to kill other proceses that may be pushing the image
-    PREV_IMAGES=$(docker images --quiet $REPOSITORY)
-    if [[ $PREV_IMAGES ]]; then
-      echo "[INFO] Previous images to remove:"
-      echo $PREV_IMAGES
-
-      docker rmi --force $PREV_IMAGES
-    else
-      echo "[INFO] No previous images to remove."
-    fi
-fi
-
-# Build
 echo "[INFO] Building image $IMAGE_NAME"
 docker build --tag $IMAGE_NAME ./
 
-# Jenkins injects BUILD_NUMBER so, we will only remove intermediate containers when BUILD_NUMBER is present
+# Only remove intermediate containers on jenkins, we care about space on the build
 if [[ $BUILD_NUMBER ]]; then
-    # Always remove intermediate containers, we care about space on the build
-    # server
-    IMAGES=$(docker images -a -q --filter "dangling=true")
-    if [[ $IMAGES ]]; then
-      echo "[INFO] Removing intermediate images"
-      echo $IMAGES
-      docker rmi --force $IMAGES
-    else
-      echo "[INFO] No intermediate images to remove."
-    fi
+## server
+IMAGES=$(docker images -a -q --filter "dangling=true")
+if [[ $IMAGES ]]; then
+  echo "[INFO] Removing intermediate images"
+  echo $IMAGES
+  docker rmi --force $IMAGES
+else
+  echo "[INFO] No intermediate images to remove."
+fi
 fi

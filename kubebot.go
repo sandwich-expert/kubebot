@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-chat-bot/bot"
@@ -111,6 +113,11 @@ var (
 			"--filename": true,
 		},
 	}
+
+	// Slack will automatically reformat anything that looks like a URL, including some image URIs.
+	// For example: "myregistry.com/org/repository:tag" -> "<http://myregistry.com/org/repository:tag|myregistry.com/org/repository:tag>\u00a0"
+	// This is what make the text look blue in the Slack UI. We need to undo this before trying to pass the message to kubectl.
+	undo_urls = regexp.MustCompile(`<.*\|(.*)>`)
 )
 
 func validateFlags(arguments ...string) error {
@@ -122,7 +129,6 @@ func validateFlags(arguments ...string) error {
 		if ignored[arguments[0]][arguments[i]] {
 			return errors.New(fmt.Sprintf("Error: %s is an invalid flag", arguments[i]))
 		}
-
 	}
 
 	return nil
@@ -138,8 +144,18 @@ func kubectl(command *bot.Cmd) (msg string, err error) {
 		return fmt.Sprintf(forbiddenChannelResponse, nickname), nil
 	}
 
-	output := execute("kubectl", command.Args...)
+	// command.Args gets mangled/truncated when slack thinks there are "URL"s, so we need to use command.RawArgs and split it ourselves
 
+	// Undo any "linkification" by slack, and fix weird characters
+	unlinkedArgs := undo_urls.ReplaceAllString(command.RawArgs, "${1}")
+	// Also fix any instances of the special "\u00a0" character that seem to sneak in when "linkification" occurs
+	fixedArgs := strings.ReplaceAll(unlinkedArgs, "\u00a0", " ")
+
+	fixedArgsSlice := strings.Split(fixedArgs, " ")
+
+	fmt.Printf("Running kubectl command for %s: kubectl %+v", nickname, fixedArgsSlice)
+
+	output := execute("kubectl", fixedArgsSlice...)
 	return fmt.Sprintf(okResponse, nickname, output), nil
 }
 
