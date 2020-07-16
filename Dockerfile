@@ -20,11 +20,11 @@ RUN go get github.com/thelastpickle/kubebot/ \
   && go build -o /usr/local/bin/kubebot github.com/thelastpickle/kubebot/ \
   && strip /usr/local/bin/kubebot
 
-# Ideally at this point we'd keep the image size down by doing a second "FROM ubuntu:20.04" and copy over kubebot and kubectl.
-# However this results in segfaults in kubebot when connecting to Slack, so we just stick to the original golang image.
-#FROM ubuntu:20.04
-#COPY --from=0 /usr/local/bin/kubebot /usr/local/bin/kubebot
-#COPY --from=0 /usr/local/bin/kubectl /usr/local/bin/kubectl
+# Use alpine specifically to line up with golang-alpine above.
+# Otherwise we see segfaults in kubebot when it's connecting to Slack.
+FROM alpine
+COPY --from=0 /usr/local/bin/kubebot /usr/local/bin/kubebot
+COPY --from=0 /usr/local/bin/kubectl /usr/local/bin/kubectl
 
 RUN ls -al /usr/local/bin \
   && kubectl version --client \
