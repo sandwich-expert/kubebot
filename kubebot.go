@@ -3,12 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"html"
 	"os"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-chat-bot/bot"
+	"github.com/mattn/go-shellwords"
 )
 
 type Kubebot struct {
@@ -148,15 +150,22 @@ func kubectl(command *bot.Cmd) (msg string, err error) {
 	// command.Args gets mangled/truncated when slack thinks there are "URL"s, so we need to use command.RawArgs and split it ourselves
 
 	// Undo any "linkification" by slack, and fix weird characters
-	unlinkedArgs := undo_urls.ReplaceAllString(command.RawArgs, "${1}")
+	argsStr := undo_urls.ReplaceAllString(command.RawArgs, "${1}")
 	// Also fix any instances of the special "\u00a0" character that seem to sneak in when "linkification" occurs
-	fixedArgs := strings.ReplaceAll(unlinkedArgs, "\u00a0", " ")
+	argsStr = strings.ReplaceAll(argsStr, "\u00a0", " ")
+	// Finally, unescape any HTML entities back to their original characters (e.g. '&amp;' -> '&', '&gt;' -> '>')
+	argsStr = html.UnescapeString(argsStr)
 
-	fixedArgsSlice := strings.Split(fixedArgs, " ")
+	// When splitting the string into args, ensure that any quoted segments are treated as a single arg.
+	// For example, given 'hello world' we want ["hello world"], not ["'hello", "world'"].
+	argsSlice, err := shellwords.Parse(argsStr)
+	if err != nil {
+		return "", errors.New("Error parsing arguments: " + err.Error())
+	}
 
-	fmt.Fprintf(os.Stderr, "Running kubectl command for %s: kubectl %+v\n", nickname, fixedArgs)
+	fmt.Fprintf(os.Stderr, "Running kubectl command for %s: kubectl %#v\n", nickname, argsSlice)
 
-	output := execute("kubectl", fixedArgsSlice...)
+	output := execute("kubectl", argsSlice...)
 	return fmt.Sprintf(okResponse, nickname, output), nil
 }
 
